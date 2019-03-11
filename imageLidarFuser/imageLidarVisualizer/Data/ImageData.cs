@@ -9,9 +9,9 @@ namespace imageLidarVisualizer.Data
 {
     public class ImageData
     {
-        public readonly Mat Img;
+        public readonly byte[] Img;
 
-        public ImageData(Mat Img)
+        public ImageData(byte[] Img)
         {
             this.Img = Img;
         }

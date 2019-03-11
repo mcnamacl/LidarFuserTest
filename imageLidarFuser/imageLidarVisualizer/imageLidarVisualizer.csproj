@@ -119,8 +119,10 @@
     <Compile Include="Form1.Designer.cs">
       <DependentUpon>Form1.cs</DependentUpon>
     </Compile>
+    <Compile Include="Fusion\ImageLidarData.cs" />
     <Compile Include="Fusion\ImageLidarFuser.cs" />
     <Compile Include="Fusion\ISensorFuser.cs" />
+    <Compile Include="Fusion\Odometry\OdometricEstimator.cs" />
     <Compile Include="Map\Obstacle.cs" />
     <Compile Include="Map\ObstacleMap.cs" />
     <Compile Include="Program.cs" />
@@ -167,6 +169,7 @@
   <ItemGroup>
     <Content Include="License-LGPL.txt" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="..\packages\EMGU.CV.3.4.3.3016\build\EMGU.CV.targets" Condition="Exists('..\packages\EMGU.CV.3.4.3.3016\build\EMGU.CV.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

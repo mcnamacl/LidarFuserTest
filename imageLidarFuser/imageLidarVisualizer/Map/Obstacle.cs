@@ -29,19 +29,12 @@ namespace imageLidarVisualizer.Map
         public float R { get; set; }
 
 
-
-        /// <summary>
-        /// Unique Identifier of an Obstacle
-        /// </summary>
-        public uint Id { get; private set; }
-
         //public Obstacle(float X, float Y, float R, uint Id)
         public Obstacle(float X, float Y, float R)
         {
             this.X = X;
             this.Y = Y;
             this.R = R;
-            this.Id = Id;
         }
     }
 }

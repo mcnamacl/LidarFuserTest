@@ -27,14 +27,13 @@ namespace imageLidarVisualizer
         private Bitmap[] frames;
 
 
-        private readonly ISensorFuser<SensorData,ObstacleMap> m_fuser;
+        private readonly ISensorFuser<ImageLidarData,ObstacleMap> m_fuser;
 
 
         private ObstacleMap m_map;
 
 
-        private SensorData[] sensorDatas;
-
+        ImageLidarData[] imageLidarData;
 
         private readonly float ScaleX, ScaleY;
 
@@ -50,23 +49,26 @@ namespace imageLidarVisualizer
             OffsetX = panel2.Width / 2;
             OffsetY = panel2.Height / 2;
             int size = 3;
-            sensorDatas = new SensorData[size];
+            imageLidarData = new ImageLidarData[size];
             frames = new Bitmap[size];
             for (int i = 0; i < size; i++)
             {
-                StreamReader reader = new StreamReader(i + ".txt");
+                StreamReader reader = new StreamReader( "data/" +i+".txt");
 
-                  LidarData lidarData = JsonConvert.DeserializeObject<LidarData>(reader.ReadLine());
-                  byte[] imgData = JsonConvert.DeserializeObject<byte[]>(reader.ReadLine());
+                  LidarData ld1= JsonConvert.DeserializeObject<LidarData>(reader.ReadLine());
+                LidarData ld2 = JsonConvert.DeserializeObject<LidarData>(reader.ReadLine());
+                LidarData ld3 = JsonConvert.DeserializeObject<LidarData>(reader.ReadLine());
+
+                byte[] imgData = JsonConvert.DeserializeObject<byte[]>(reader.ReadLine());
                   CarState stateData = JsonConvert.DeserializeObject<CarState>(reader.ReadLine());
 
                 frames[i] = new Bitmap(ImageUtils.ByteToImage(imgData), panel1.Size);
-                sensorDatas[i] = new SensorData()
+                imageLidarData[i] = ImageLidarData.Create(new SensorData()
                   {
-                      LidarData = lidarData,
-                      ImageData = new ImageData(ImageUtils.CreateMat(imgData)),
+                      LidarData = new LidarData[] { ld1, ld2, ld3 },
+                      ImageData = imgData,
                       StateData = stateData
-                  };
+                  });
             }
 
             m_image = new Bitmap(Image.FromFile("car.png"), new Size((int)(ObstacleMap.CarWidth * ScaleX),(int)( ObstacleMap.CarHeight * ScaleY)));
@@ -88,7 +90,7 @@ namespace imageLidarVisualizer
 
         {
             Graphics g = this.panel2.CreateGraphics();
-            float Rot = GetYaw(sensorDatas[0].LidarData.Pose.Orientation);
+            float Rot = 0f;// GetYaw(sensorDatas[0].StateData.KinematicsEstimated.Orientation);
 
             DrawGrid(g);
             Image img = RotateBitmap(m_image, Rot);
@@ -130,18 +132,15 @@ namespace imageLidarVisualizer
 
         private void button1_Click(object sender, EventArgs e)
         {
-            DIndex++;
-
-            if (DIndex == 1)
+   
+            if (DIndex == 3)
                 DIndex = 0;
 
-            m_map = m_fuser.Fuse(sensorDatas[DIndex]);
+            m_map = m_fuser.Fuse(imageLidarData[DIndex]);
 
             this.panel1.Refresh();
             this.panel2.Refresh();
-            
-
-            
+            DIndex++;
         }
 
         private void label1_Click(object sender, EventArgs e)
@@ -244,15 +243,23 @@ namespace imageLidarVisualizer
 
         private void DrawLidarPoints(Graphics g)
         {
-            float[] fs = sensorDatas[DIndex].LidarData.PointCloud;
-            
-            for(int i=0;i<fs.Length;i+=3)
-            {
-                float RealN = fs[i];     // X axis on lidar reading
-                float RealE = fs[i + 1]; // Y axis on lidar reading
+           /* float[] fs = ld.PointCloud;
 
-                g.DrawEllipse(Pens.Blue, (RealN * ScaleX) + OffsetX , panel2.Height - ((RealE * ScaleY)+OffsetY), 2, 2);
-            }
+            for (int i = 0; i < fs.Length; i += 3)
+            {
+                float RealN = fs[i] - ld.Pose.Position.X ;     // X axis on lidar reading
+                float RealE = fs[i + 1] - ld.Pose.Position.Y; // Y axis on lidar reading
+
+                g.DrawEllipse(Pens.Blue, (RealN * ScaleX) + OffsetX, panel2.Height - ((RealE * ScaleY) + OffsetY), 2, 2);
+            }*/
+             float[] fsX = imageLidarData[DIndex].Xs;
+             float[] fsY = imageLidarData[DIndex].Ys;
+
+             //MessageBox.Show(fsX[5] + " " + fsY[5]);
+             for (int i=0;i<fsX.Length;i++)
+             {
+                 g.DrawEllipse(Pens.Blue, ((fsX[i] * ScaleX) + OffsetX ), panel2.Height - ((fsY[i] * ScaleY)+OffsetY), 2, 2);
+             }
         }
     }
 }
