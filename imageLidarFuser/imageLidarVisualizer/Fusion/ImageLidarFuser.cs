@@ -20,7 +20,7 @@ namespace imageLidarVisualizer.Fusion
         {
  
             //Get predicted obstacles
-            List<PredictedObstacle> predictedObstacles = GetPredictedObstacles(Input.Xs, Input.Ys);
+            List<PredictedObstacle> predictedObstacles = GetPredictedObstacles(Input.Xs, Input.Ys).OrderBy(O => O.MeanY).ToList();
 
             
             ObstacleMap obstacleMap = new ObstacleMap();
@@ -29,6 +29,19 @@ namespace imageLidarVisualizer.Fusion
             // -> You can use Computer Vision here
             // -> Think of useful heuristics for determining the road.
 
+
+            foreach(PredictedObstacle ob in predictedObstacles)
+            {
+                if(ob.MeanX < -0.5f || ob.MeanX > 0.5f)
+                {
+                    Obstacle newOb = new Obstacle(ob.MeanX, ob.MeanY, 1.0f);
+
+                    if (newOb.X > 0)
+                        obstacleMap.ObstaclesRight.AddLast(newOb);
+                    else
+                        obstacleMap.ObstaclesLeft.AddLast(newOb);
+                }               
+            }
 
 
             // Maybe TODO map ran through odometry to check for missed obstacles
