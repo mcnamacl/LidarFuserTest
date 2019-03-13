@@ -30,6 +30,7 @@ namespace imageLidarVisualizer.Fusion
             // -> Think of useful heuristics for determining the road.
 
 
+
             foreach(PredictedObstacle ob in predictedObstacles)
             {
                 if(ob.MeanX < -0.5f || ob.MeanX > 0.5f)
