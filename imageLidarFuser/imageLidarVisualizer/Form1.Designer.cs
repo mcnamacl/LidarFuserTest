@@ -34,6 +34,7 @@
             this.textBox1 = new System.Windows.Forms.TextBox();
             this.label1 = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
+            this.panelCv = new System.Windows.Forms.Panel();
             this.SuspendLayout();
             // 
             // panel1
@@ -54,13 +55,13 @@
             this.panel2.Cursor = System.Windows.Forms.Cursors.Cross;
             this.panel2.Location = new System.Drawing.Point(439, 19);
             this.panel2.Name = "panel2";
-            this.panel2.Size = new System.Drawing.Size(400, 400);
+            this.panel2.Size = new System.Drawing.Size(573, 541);
             this.panel2.TabIndex = 1;
             this.panel2.Paint += new System.Windows.Forms.PaintEventHandler(this.panel2_Paint);
             // 
             // button1
             // 
-            this.button1.Location = new System.Drawing.Point(18, 384);
+            this.button1.Location = new System.Drawing.Point(12, 525);
             this.button1.Name = "button1";
             this.button1.Size = new System.Drawing.Size(128, 35);
             this.button1.TabIndex = 2;
@@ -70,7 +71,7 @@
             // 
             // textBox1
             // 
-            this.textBox1.Location = new System.Drawing.Point(82, 249);
+            this.textBox1.Location = new System.Drawing.Point(231, 534);
             this.textBox1.Name = "textBox1";
             this.textBox1.Size = new System.Drawing.Size(87, 22);
             this.textBox1.TabIndex = 3;
@@ -78,7 +79,7 @@
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(15, 254);
+            this.label1.Location = new System.Drawing.Point(164, 534);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(61, 17);
             this.label1.TabIndex = 4;
@@ -93,11 +94,23 @@
             this.label2.Size = new System.Drawing.Size(0, 17);
             this.label2.TabIndex = 5;
             // 
+            // panelCv
+            // 
+            this.panelCv.BackColor = System.Drawing.SystemColors.Window;
+            this.panelCv.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
+            this.panelCv.Cursor = System.Windows.Forms.Cursors.Cross;
+            this.panelCv.Location = new System.Drawing.Point(18, 260);
+            this.panelCv.Name = "panelCv";
+            this.panelCv.Size = new System.Drawing.Size(400, 225);
+            this.panelCv.TabIndex = 6;
+            this.panelCv.Paint += new System.Windows.Forms.PaintEventHandler(this.panelCv_Paint);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(856, 434);
+            this.ClientSize = new System.Drawing.Size(1033, 572);
+            this.Controls.Add(this.panelCv);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.textBox1);
@@ -119,6 +132,7 @@
         private System.Windows.Forms.TextBox textBox1;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Label label2;
+        private System.Windows.Forms.Panel panelCv;
     }
 }
 

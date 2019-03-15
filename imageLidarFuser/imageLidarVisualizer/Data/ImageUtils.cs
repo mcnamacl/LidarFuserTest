@@ -3,6 +3,7 @@ using Emgu.CV.CvEnum;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -12,14 +13,11 @@ namespace imageLidarVisualizer.Data
 {
     public static class ImageUtils
     {
-        public static unsafe Mat CreateMat(byte[] buffer)
+        public static Mat GetMat(byte[] buffer)
         {
-            fixed (byte* p = buffer)
-            {
-                IntPtr ptr = (IntPtr)p;
-                Mat mat = new Mat(new int[] { 256, 144 }, DepthType.Cv8U, ptr);
-                return mat;
-            }
+            Mat mat = new Mat();
+            CvInvoke.Imdecode(buffer, ImreadModes.ReducedColor8, mat);
+            return mat;
         }
 
         public static Bitmap ByteToImage(byte[] blob)

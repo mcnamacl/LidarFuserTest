@@ -47,7 +47,7 @@ namespace imageLidarVisualizer.Fusion
         /// <returns></returns>
         internal static ImageLidarData Create(SensorData sensorData)
         {
-            Mat Image = ImageUtils.CreateMat(sensorData.ImageData);
+            Mat Image = ImageUtils.GetMat(sensorData.ImageData);
 
             int Size = sensorData.LidarData.Sum(A => A.PointCloud.Length);
 

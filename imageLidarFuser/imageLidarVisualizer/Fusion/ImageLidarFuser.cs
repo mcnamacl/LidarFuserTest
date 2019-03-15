@@ -1,6 +1,7 @@
 ﻿using AirSimRpc;
 using Emgu.CV;
 using Emgu.CV.CvEnum;
+using Emgu.CV.Structure;
 using imageLidarVisualizer.Data;
 using imageLidarVisualizer.Fusion.Odometry;
 using imageLidarVisualizer.Map;
@@ -20,7 +21,7 @@ namespace imageLidarVisualizer.Fusion
         {
  
             //Get predicted obstacles
-            List<PredictedObstacle> predictedObstacles = GetPredictedObstacles(Input.Xs, Input.Ys).OrderBy(O => O.MeanY).ToList();
+            List<PredictedObstacle> predictedObstacles = GetPredictedObstacles(Input.Xs, Input.Ys);
 
             
             ObstacleMap obstacleMap = new ObstacleMap();
@@ -29,21 +30,7 @@ namespace imageLidarVisualizer.Fusion
             // -> You can use Computer Vision here
             // -> Think of useful heuristics for determining the road.
 
-
-
-            foreach(PredictedObstacle ob in predictedObstacles)
-            {
-                if(ob.MeanX < -0.5f || ob.MeanX > 0.5f)
-                {
-                    Obstacle newOb = new Obstacle(ob.MeanX, ob.MeanY, 1.0f);
-
-                    if (newOb.X > 0)
-                        obstacleMap.ObstaclesRight.AddLast(newOb);
-                    else
-                        obstacleMap.ObstaclesLeft.AddLast(newOb);
-                }               
-            }
-
+            Mat threshHoldImage = GetThresholdImageCone(Input.Image);
 
             // Maybe TODO map ran through odometry to check for missed obstacles
             //ObstacleMap ReturnedMap = AddOdometricEstimation(obstacleMap);
@@ -119,6 +106,33 @@ namespace imageLidarVisualizer.Fusion
             }
         }
 
+        public static Mat GetThresholdImageCone(Mat mat)
+        {
+            //Some bad OpenCV code
+            Mat img = mat;
+
+            Mat threshLow = new Mat();
+            Mat threshHigh = new Mat();
+
+            CvInvoke.InRange(img, new ScalarArray(new MCvScalar(0, 25, 50)),
+                 new ScalarArray(new MCvScalar(34, 148, 199)), threshLow);
+            CvInvoke.InRange(img, new ScalarArray(new MCvScalar(23, 164, 215)),
+                 new ScalarArray(new MCvScalar(126, 202, 237)), threshHigh);
+
+            Mat imgThresh = new Mat();
+            CvInvoke.BitwiseOr(threshLow, threshHigh, imgThresh);
+
+            Mat imgThreshBlur = new Mat();
+            CvInvoke.MedianBlur(imgThresh, imgThreshBlur, 3);
+
+            Mat imgEdge = new Mat();
+            CvInvoke.Canny(imgThreshBlur, imgEdge, 80, 160);
+
+            return imgThreshBlur;
+
+            //CvInvoke.DrawContours(img, imgEdge, 1, new MCvScalar(255, 255, 255));
+        }
+
         private const float MinDist = 1.3f;
 
 
@@ -126,6 +140,9 @@ namespace imageLidarVisualizer.Fusion
 
 
         private CarState InitialState;
+
+
+
 
     }
 
