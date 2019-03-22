@@ -38,8 +38,10 @@ namespace imageLidarVisualizer.Fusion
 
             predictedObstacles = predictedObstacles.OrderBy((O) => O.MeanY).ToList();
 
+            //orientate the obstacles
             List<PredictedObstacle> rotatedObstacles = orientate(predictedObstacles);
 
+            //assign obstacles left and right
             obstacleMap = sortLeftAndRight(rotatedObstacles, predictedObstacles);
 
             Mat threshHoldImage = GetThresholdImageCone(Input.Image);
