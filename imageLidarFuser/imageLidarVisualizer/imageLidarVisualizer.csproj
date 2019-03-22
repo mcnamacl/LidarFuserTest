@@ -108,6 +108,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CarActuator.cs" />
     <Compile Include="Data\Data.cs" />
     <Compile Include="Data\ImageData.cs" />
     <Compile Include="Data\ImageUtils.cs" />
@@ -123,6 +124,7 @@
     <Compile Include="Fusion\ImageLidarFuser.cs" />
     <Compile Include="Fusion\ISensorFuser.cs" />
     <Compile Include="Fusion\Odometry\OdometricEstimator.cs" />
+    <Compile Include="IActuator.cs" />
     <Compile Include="Map\Obstacle.cs" />
     <Compile Include="Map\ObstacleMap.cs" />
     <Compile Include="Program.cs" />

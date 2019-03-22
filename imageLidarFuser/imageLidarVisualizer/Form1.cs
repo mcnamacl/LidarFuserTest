@@ -53,7 +53,7 @@ namespace imageLidarVisualizer
             ScaleY = panel2.Height / ObstacleMap.SizeY;
             OffsetX = panel2.Width / 2;
             OffsetY = panel2.Height / 2;
-            int size = 3;
+            int size = 14;
             imageLidarData = new ImageLidarData[size];
             frames = new Bitmap[size];
             cvframes = new Bitmap[size];
@@ -144,7 +144,7 @@ namespace imageLidarVisualizer
         private void button1_Click(object sender, EventArgs e)
         {
    
-            if (DIndex == 3)
+            if (DIndex == 14)
                 DIndex = 0;
 
             m_map = m_fuser.Fuse(imageLidarData[DIndex]);
