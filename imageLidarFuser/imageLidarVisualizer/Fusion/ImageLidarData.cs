@@ -61,7 +61,7 @@ namespace imageLidarVisualizer.Fusion
                 for (int i = 0; i < Arr.Length; i += 3)
                 {
                     float X = Arr[i] - lidarData.Pose.Position.X;
-                    float Y = (Arr[i+1]) - lidarData.Pose.Position.Y;
+                    float Y = (Arr[i + 1]) - lidarData.Pose.Position.Y;
                     float Z = Arr[i + 2] - lidarData.Pose.Position.Z;
 
                     XPoints[i] = X;

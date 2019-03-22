@@ -30,6 +30,9 @@ namespace imageLidarVisualizer.Fusion
             // -> You can use Computer Vision here
             // -> Think of useful heuristics for determining the road.
 
+            //assume sorted out orientation wise
+            obstacleMap = sortLeftAndRight(predictedObstacles);
+
             Mat threshHoldImage = GetThresholdImageCone(Input.Image);
 
             // Maybe TODO map ran through odometry to check for missed obstacles
@@ -37,6 +40,101 @@ namespace imageLidarVisualizer.Fusion
             //InitialState = Input.State;
 
             return obstacleMap;
+        }
+
+        private ObstacleMap sortLeftAndRight(List<PredictedObstacle> obs)
+        {
+            ObstacleMap map = new ObstacleMap();
+
+            obs = obs.OrderBy((O) => O.MeanY).ToList();
+
+            PredictedObstacle maxY = obs.LastOrDefault();
+            PredictedObstacle minYLeft = obs.LastOrDefault();
+            PredictedObstacle minYRight = obs.LastOrDefault();
+
+            bool foundRight = false, foundLeft = false;
+
+            foreach (PredictedObstacle obj in obs)
+            {
+                if (obj.MeanX > 0 && !foundRight)
+                {
+                    minYRight = obj;
+                    foundRight = true;
+                }
+                else if (obj.MeanX < 0 && !foundLeft){
+                    minYLeft = obj;
+                    foundLeft = true;
+                }
+                if (foundLeft && foundRight)
+                {
+                    break;
+                }
+            }
+
+            bool pos = false; //left -> true, right -> false
+
+            if (maxY.MeanX < minYLeft.MeanX && Math.Abs(maxY.MeanX - minYLeft.MeanX) > 2)
+            {
+                pos = true; //left turn
+                map = designateForTurn(pos, map, obs, minYLeft, maxY);
+            } 
+            else if (maxY.MeanX > minYRight.MeanX && Math.Abs(maxY.MeanX - minYRight.MeanX) > 2)
+            {
+                //right turn
+                map = designateForTurn(pos, map, obs, minYRight, maxY);
+            } else
+            {
+                map = designateForStraight(map, obs);
+            }
+            
+            return map;
+        }
+
+        private ObstacleMap designateForStraight(ObstacleMap map, List<PredictedObstacle> obs)
+        {
+            foreach (PredictedObstacle obj in obs)
+            {
+                Obstacle newObs = new Obstacle(obj.MeanX, obj.MeanY, 1f);
+                if (obj.MeanX > 0)
+                {
+                    map.ObstaclesRight.AddLast(newObs);
+                } else
+                {
+                    map.ObstaclesLeft.AddLast(newObs);
+                }
+            }
+            return map;
+        }
+
+        private ObstacleMap designateForTurn(bool pos, ObstacleMap map, List<PredictedObstacle> obs, PredictedObstacle p0, PredictedObstacle p1)
+        {
+            foreach (PredictedObstacle obj in obs)
+            {
+                Obstacle newObs = new Obstacle(obj.MeanX, obj.MeanY, 1f);
+
+                if (line(p0, p1, obj) + 1 < 0) // righthand side
+                {
+                    map.ObstaclesRight.AddLast(newObs);
+                }
+                else if (line(p0, p1, obj) + 1 > 0) // lefthand side
+                {
+                    map.ObstaclesLeft.AddLast(newObs);
+                }
+                else if (line(p0, p1, obj) + 1 == 0 && pos)
+                {
+                    map.ObstaclesRight.AddLast(newObs);
+                }
+                else if (line(p0, p1, obj) + 1 == 0 && !pos)
+                {
+                    map.ObstaclesLeft.AddLast(newObs);
+                }
+            }
+            return map;
+        }
+
+        private double line(PredictedObstacle p0, PredictedObstacle p1, PredictedObstacle p2)
+        {
+            return (p1.MeanX - p0.MeanX) * (p2.MeanY - p0.MeanY) - (p2.MeanX - p0.MeanX) * (p1.MeanY - p0.MeanY);
         }
 
         private ObstacleMap AddOdometricEstimation(ObstacleMap obstacleMap)
