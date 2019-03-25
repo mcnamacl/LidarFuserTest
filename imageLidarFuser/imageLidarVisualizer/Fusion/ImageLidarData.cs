@@ -24,7 +24,7 @@ namespace imageLidarVisualizer.Fusion
         internal readonly Mat Image;
 
 
-        internal readonly CarState State;
+        internal readonly StateData State;
 
 
         private const float c_CutOffZHigh = 1.0f;
@@ -32,7 +32,7 @@ namespace imageLidarVisualizer.Fusion
 
         private const float c_CutOffZLow = -1.0f;
 
-        private ImageLidarData(float[] Xs, float[] Ys, Mat Image, CarState State)
+        private ImageLidarData(float[] Xs, float[] Ys, Mat Image, StateData State)
         {
             this.Xs = Xs;
             this.Ys = Ys;

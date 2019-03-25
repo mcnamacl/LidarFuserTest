@@ -16,11 +16,9 @@ namespace imageLidarVisualizer.Fusion
 {
     internal sealed class ImageLidarFuser : ISensorFuser<ImageLidarData, ObstacleMap>
     {
-        private readonly IAirSimCarProxy m_proxy;
 
-        public ImageLidarFuser(IAirSimCarProxy proxy)
+        public ImageLidarFuser()
         {
-            m_proxy = proxy;
         }
 
         public ObstacleMap Fuse(ImageLidarData Input)
@@ -39,7 +37,7 @@ namespace imageLidarVisualizer.Fusion
             predictedObstacles = predictedObstacles.OrderBy((O) => O.MeanY).ToList();
 
             //orientate the obstacles
-            List<PredictedObstacle> rotatedObstacles = orientate(predictedObstacles);
+            List<PredictedObstacle> rotatedObstacles = orientate(predictedObstacles, Input.State);
 
             //assign obstacles left and right
             obstacleMap = sortLeftAndRight(rotatedObstacles, predictedObstacles);
@@ -53,9 +51,9 @@ namespace imageLidarVisualizer.Fusion
             return obstacleMap;
         }
 
-        private List<PredictedObstacle> orientate(List<PredictedObstacle> obs)
+        private List<PredictedObstacle> orientate(List<PredictedObstacle> obs, StateData State)
         {
-            float yaw = getYaw();
+            float yaw = 45f; // TODO use rotation in State (it's in radians 0 = N, PI/2=E,-PI/2=W etc
             float rotation = 45 * ((float)Math.PI / 180);
             List<PredictedObstacle> rotatedObs = new List<PredictedObstacle>();
             foreach (PredictedObstacle obj in obs)
@@ -74,11 +72,6 @@ namespace imageLidarVisualizer.Fusion
         private float getY(float theta, float x, float y)
         {
             return (x * (float)Math.Cos(theta)) + (y * (float)Math.Sin(theta));
-        }
-
-        private float getYaw()
-        {
-            return m_proxy.GetCarStateAsync().Result.Value.KinematicsEstimated.Orientation.Z; 
         }
 
         private ObstacleMap sortLeftAndRight(List<PredictedObstacle> obs, List<PredictedObstacle> original)

@@ -18,6 +18,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Globalization;
+using System.Numerics;
 
 namespace imageLidarVisualizer
 {
@@ -70,23 +71,46 @@ namespace imageLidarVisualizer
 
                 frames[i] = new Bitmap(ImageUtils.ByteToImage(imgData), panel1.Size);
                 imageLidarData[i] = ImageLidarData.Create(new SensorData()
-                  {
-                      LidarData = new LidarData[] { ld1, ld2, ld3 },
-                      ImageData = imgData,
-                      StateData = stateData
+                {
+                    LidarData = new LidarData[] { ld1, ld2, ld3 },
+                    ImageData = imgData,
+                    StateData = CreateStateData(stateData)
                   });
 
-
+               
                 cvframes[i] = new Bitmap(ImageLidarFuser.GetThresholdImageCone(imageLidarData[i].Image)
                    .ToImage<Bgr, Byte>().ToBitmap(), panelCv.Size);
             }
-
+            
             m_image = new Bitmap(Image.FromFile("car.png"), new Size((int)(ObstacleMap.CarWidth * ScaleX),(int)( ObstacleMap.CarHeight * ScaleY)));
             
             m_fuser = new ImageLidarFuser();
             panel1.Refresh();
             panel2.Refresh();
             
+        }
+
+        private StateData CreateStateData(CarState carState)
+        {
+            Vector2 linearVel = new Vector2(carState.KinematicsEstimated.LinearVelocity.Y,
+                carState.KinematicsEstimated.LinearVelocity.X);
+            Vector2 linearAcc = new Vector2(carState.KinematicsEstimated.LinearAcceleration.Y,
+                carState.KinematicsEstimated.LinearAcceleration.X);
+            Vector2 angularVel = new Vector2(carState.KinematicsEstimated.AngularVelocity.Y,
+                carState.KinematicsEstimated.AngularVelocity.X);
+            Vector2 angularAcc = new Vector2(carState.KinematicsEstimated.AngularAcceleration.Y,
+                carState.KinematicsEstimated.AngularAcceleration.X);
+
+            float Yaw = GetYaw(carState.KinematicsEstimated.Orientation);
+
+            return new StateData(Yaw, linearVel, linearAcc, angularVel, angularAcc);
+        }
+
+        private float GetYaw(QuaternionR q)
+        {
+            double siny_cosp = +2.0 * (q.W * q.Z);
+            double cosy_cosp = +1.0 - 2.0 * (q.Z * q.Z);
+            return (float)Math.Atan2(siny_cosp, cosy_cosp) - 1.5f;
         }
 
         private void panel1_Paint(object sender, PaintEventArgs e)
@@ -100,8 +124,8 @@ namespace imageLidarVisualizer
 
         {
             Graphics g = this.panel2.CreateGraphics();
-
-            float Rot = 0f;
+            
+            float Rot = imageLidarData[DIndex].State.Yaw / ((float)(2* Math.PI)) *360;
 
             DrawGrid(g);
             Image img = RotateBitmap(m_image, Rot);
@@ -148,7 +172,7 @@ namespace imageLidarVisualizer
                 DIndex = 0;
 
             m_map = m_fuser.Fuse(imageLidarData[DIndex]);
-
+            textBox1.Text = "" + imageLidarData[DIndex].State.Yaw;
             this.panel1.Refresh();
             this.panel2.Refresh();
             this.panelCv.Refresh();
@@ -158,11 +182,6 @@ namespace imageLidarVisualizer
         private void label1_Click(object sender, EventArgs e)
         {
             
-        }
-
-        float GetYaw(QuaternionR q)
-        {
-            return (float)Math.Asin(2 * q.X * q.Y + 2 * q.Z * q.W);
         }
 
         // Return a bitmap rotated around its center.

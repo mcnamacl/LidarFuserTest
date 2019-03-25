@@ -15,6 +15,6 @@ namespace imageLidarVisualizer.Data
         public byte[] ImageData { get; set; }
 
 
-        public CarState StateData { get; set; }
+        public StateData StateData { get; set; }
     }
 }
