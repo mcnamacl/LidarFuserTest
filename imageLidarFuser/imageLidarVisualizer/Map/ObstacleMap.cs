@@ -27,7 +27,7 @@ namespace imageLidarVisualizer.Map
         /// <summary>
         ///  The length of the Horizontal Map (W/E)
         /// </summary>
-        public static readonly float SizeX = 27.0f;
+        public static readonly float SizeX = 50.0f;//27.0f;
 
 
         /// <summary>

@@ -327,3 +327,5 @@ C:\Users\isaac\OneDrive\Desktop\Showcase\LidarFuserTest\imageLidarFuser\imageLid
 C:\Users\isaac\OneDrive\Desktop\Showcase\LidarFuserTest\imageLidarFuser\imageLidarVisualizer\bin\Debug\zh-tw\ZedGraph.resources.dll
 C:\Users\isaac\OneDrive\Desktop\Showcase\LidarFuserTest\imageLidarFuser\imageLidarVisualizer\obj\Debug\imageLidarVisualizer.csproj.CopyComplete
 C:\Users\isaac\OneDrive\Desktop\Showcase\LidarFuserTest\imageLidarFuser\imageLidarVisualizer\obj\Debug\imageLidarVisualizer.csprojAssemblyReference.cache
+C:\Users\mcnam\Documents\GitHub\LidarFuserTest\imageLidarFuser\imageLidarVisualizer\bin\Debug\System.Numerics.Vectors.dll
+C:\Users\mcnam\Documents\GitHub\LidarFuserTest\imageLidarFuser\imageLidarVisualizer\bin\Debug\System.Numerics.Vectors.xml

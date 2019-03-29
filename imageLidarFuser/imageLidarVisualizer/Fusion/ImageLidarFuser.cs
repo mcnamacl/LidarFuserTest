@@ -34,10 +34,28 @@ namespace imageLidarVisualizer.Fusion
             // -> You can use Computer Vision here
             // -> Think of useful heuristics for determining the road.
 
-            predictedObstacles = predictedObstacles.OrderBy((O) => O.MeanY).ToList();
-
+            
             //orientate the obstacles
             List<PredictedObstacle> rotatedObstacles = orientate(predictedObstacles, Input.State);
+            //rotatedObstacles = rotatedObstacles.Where(O => O.MeanY > 0).ToList();
+
+            //HashSet<int> idSet = new HashSet<int>();
+            //for (int i = 0; i < rotatedObstacles.Count(); i++)
+            //{
+            //    idSet.Add(rotatedObstacles[i].ID);
+            //}
+
+            //List<PredictedObstacle> newPredictedObs = new List<PredictedObstacle>();
+
+            //for (int i = 0; i < predictedObstacles.Count(); i++)
+            //{
+            //    if (idSet.Contains(predictedObstacles[i].ID))
+            //    {
+            //        newPredictedObs.Add(predictedObstacles[i]);
+            //    }
+            //}
+
+            rotatedObstacles = rotatedObstacles.OrderBy((O) => O.MeanY).ToList();
 
             //assign obstacles left and right
             obstacleMap = sortLeftAndRight(rotatedObstacles, predictedObstacles);
@@ -53,12 +71,12 @@ namespace imageLidarVisualizer.Fusion
 
         private List<PredictedObstacle> orientate(List<PredictedObstacle> obs, StateData State)
         {
-            float yaw = 45f; // TODO use rotation in State (it's in radians 0 = N, PI/2=E,-PI/2=W etc
-            float rotation = 45 * ((float)Math.PI / 180);
             List<PredictedObstacle> rotatedObs = new List<PredictedObstacle>();
+            float yaw = State.Yaw;
+
             foreach (PredictedObstacle obj in obs)
             {
-                PredictedObstacle newObs = new PredictedObstacle(getX((float)Math.Asin(yaw) - rotation, obj.MeanX, obj.MeanY), getY((float)Math.Asin(yaw) - rotation, obj.MeanX, obj.MeanY));
+                PredictedObstacle newObs = new PredictedObstacle(getX(yaw, obj.MeanX, obj.MeanY), getY(yaw, obj.MeanX, obj.MeanY), obj.ID);
                 rotatedObs.Add(newObs);
             }
             return rotatedObs;
@@ -71,7 +89,7 @@ namespace imageLidarVisualizer.Fusion
 
         private float getY(float theta, float x, float y)
         {
-            return (x * (float)Math.Cos(theta)) + (y * (float)Math.Sin(theta));
+            return (x * (float)Math.Sin(theta)) + (y * (float)Math.Cos(theta));
         }
 
         private ObstacleMap sortLeftAndRight(List<PredictedObstacle> obs, List<PredictedObstacle> original)
@@ -81,6 +99,7 @@ namespace imageLidarVisualizer.Fusion
             PredictedObstacle maxY = obs.LastOrDefault();
             PredictedObstacle minYLeft = obs.LastOrDefault();
             PredictedObstacle minYRight = obs.LastOrDefault();
+
 
             bool foundRight = false, foundLeft = false;
 
@@ -101,17 +120,20 @@ namespace imageLidarVisualizer.Fusion
                 }
             }
 
-            bool pos = false; //left -> true, right -> false
 
-            if (maxY.MeanX < minYLeft.MeanX && Math.Abs(maxY.MeanX - minYLeft.MeanX) > 2)
+            Side pos = Side.Right; //left -> true, right -> false
+
+            if (maxY.MeanX < minYLeft.MeanX && Math.Abs(maxY.MeanX - minYLeft.MeanX) > 3)
             {
-                pos = true; //left turn
-                map = designateForTurn(pos, map, obs, minYLeft, maxY, original);
+                pos = Side.Left; //left turn
+                map = designateForTurn(pos, map, obs, minYRight, maxY, original);
             } 
-            else if (maxY.MeanX > minYRight.MeanX && Math.Abs(maxY.MeanX - minYRight.MeanX) > 2)
+            else if (maxY.MeanX > minYRight.MeanX && Math.Abs(maxY.MeanX - minYRight.MeanX) > 3)
             {
                 //right turn
-                map = designateForTurn(pos, map, obs, minYRight, maxY, original);
+                MessageBox.Show(maxY.MeanX.ToString() + " " + maxY.MeanY.ToString() + " " + minYLeft.MeanX.ToString() + " " + minYLeft.MeanY.ToString() + " " + minYLeft.ID);
+
+                map = designateForTurn(pos, map, obs, minYLeft, maxY, original);
             } else
             {
                 map = designateForStraight(map, obs, original);
@@ -136,35 +158,48 @@ namespace imageLidarVisualizer.Fusion
             return map;
         }
 
-        private ObstacleMap designateForTurn(bool pos, ObstacleMap map, List<PredictedObstacle> obs, PredictedObstacle p0, PredictedObstacle p1, List<PredictedObstacle> original)
+        private ObstacleMap designateForTurn(Side pos, ObstacleMap map, List<PredictedObstacle> obs, PredictedObstacle p0, PredictedObstacle p1, List<PredictedObstacle> original)
         {
+            obs = obs.OrderBy((O) => O.ID).ToList();
+            original = original.OrderBy((O) => O.ID).ToList();
             for (int i = 0; i < obs.Count(); i++) 
             {
                 Obstacle newObs = new Obstacle(original[i].MeanX, original[i].MeanY, 1f);
-
-                if (line(p0, p1, obs[i]) + 1 < 0) // righthand side
+                Side side = line(p0, p1, obs[i]);
+                if (side == Side.Right) // righthand side
                 {
                     map.ObstaclesRight.AddLast(newObs);
-                }
-                else if (line(p0, p1, obs[i]) + 1 > 0) // lefthand side
+                    //MessageBox.Show("Right " + obs[i].MeanX.ToString() + " " + obs[i].MeanY.ToString() + " " + obs[i].ID);
+                } 
+                else if (side == Side.Left) // lefthand side
                 {
                     map.ObstaclesLeft.AddLast(newObs);
+                    //MessageBox.Show("Left " + obs[i].MeanX.ToString() + " " + obs[i].MeanY.ToString() + " " + obs[i].ID);
                 }
-                else if (line(p0, p1, obs[i]) + 1 == 0 && pos)
+                else if (side == Side.Centre && pos == Side.Left)
                 {
+                    //MessageBox.Show("Right " + obs[i].MeanX.ToString() + " " + obs[i].MeanY.ToString() + " " + obs[i].ID);
+                    map.ObstaclesLeft.AddLast(newObs);
+                }
+                else if (side == Side.Centre && pos == Side.Right)
+                {
+                    //MessageBox.Show("Left " + obs[i].MeanX.ToString() + " " + obs[i].MeanY.ToString() + " " + obs[i].ID);
                     map.ObstaclesRight.AddLast(newObs);
-                }
-                else if (line(p0, p1, obs[i]) + 1 == 0 && !pos)
-                {
-                    map.ObstaclesLeft.AddLast(newObs);
                 }
             }
             return map;
         }
 
-        private double line(PredictedObstacle p0, PredictedObstacle p1, PredictedObstacle p2)
+        //p0=min p0x = x1, p0y = y1, p1=max p1x = x2, p1y = y2, p2=point DO NOT KNOW IF POINT IS TO THE LEFT OR  RIGHT OF THE LINE 
+
+        private Side line(PredictedObstacle p0, PredictedObstacle p1, PredictedObstacle p2)
         {
-            return (p1.MeanX - p0.MeanX) * (p2.MeanY - p0.MeanY) - (p2.MeanX - p0.MeanX) * (p1.MeanY - p0.MeanY);
+            double val = (p2.MeanX - p0.MeanX) * (p1.MeanY - p0.MeanY) - (p2.MeanY - p0.MeanY) * (p1.MeanX - p0.MeanX);
+            if (val < 0.1 && val > -0.1)
+            {
+                return Side.Centre;
+            }
+            return (val > 0) ? Side.Right : Side.Left;
         }
 
         private ObstacleMap AddOdometricEstimation(ObstacleMap obstacleMap)
@@ -182,16 +217,21 @@ namespace imageLidarVisualizer.Fusion
         {
             List<PredictedObstacle> obs = new List<PredictedObstacle>();
 
+            int counter = 0;
             for (int i = 0;i<Xs.Length;i++)
             {
                 float X = Xs[i];
                 float Y = Ys[i];
                 PredictedObstacle obstacle = GetNearestObstacle(X, Y, obs);
 
-                if(!(X < 0.2 && X > -0.2) && !(Y  < 0.2 && Y > -0.2))
+                if (!(X < 0.2 && X > -0.2) && !(Y < 0.2 && Y > -0.2))
                 {
                     if (obstacle == null)
-                        obs.Add(new PredictedObstacle(X, Y));
+                    {
+                        obs.Add(new PredictedObstacle(X, Y, counter));
+                        counter++;
+                    }
+
                     else
                         obstacle.Add(X, Y);
                 }
@@ -217,14 +257,17 @@ namespace imageLidarVisualizer.Fusion
         {
             private float X, Y;
 
+            internal int ID;
+
             private int Count;
 
             internal float MeanX => X / Count;
 
             internal float MeanY => Y / Count;
 
-            internal PredictedObstacle(float X, float Y)
+            internal PredictedObstacle(float X, float Y, int ID)
             {
+                this.ID = ID;
                 this.X = X;
                 this.Y = Y;
                 Count = 1;
@@ -261,9 +304,15 @@ namespace imageLidarVisualizer.Fusion
             CvInvoke.Canny(imgThreshBlur, imgEdge, 80, 160);
 
             return imgThreshBlur;
-
+            
             //CvInvoke.DrawContours(img, imgEdge, 1, new MCvScalar(255, 255, 255));
         }
+
+        private enum Side
+        { Left,
+        Right,
+        Centre
+        };
 
         private const float MinDist = 1.3f;
 

@@ -54,7 +54,7 @@ namespace imageLidarVisualizer
             ScaleY = panel2.Height / ObstacleMap.SizeY;
             OffsetX = panel2.Width / 2;
             OffsetY = panel2.Height / 2;
-            int size = 14;
+            int size = 10;
             imageLidarData = new ImageLidarData[size];
             frames = new Bitmap[size];
             cvframes = new Bitmap[size];
@@ -106,12 +106,17 @@ namespace imageLidarVisualizer
             return new StateData(Yaw, linearVel, linearAcc, angularVel, angularAcc);
         }
 
-        private float GetYaw(QuaternionR q)
-        {
-            double siny_cosp = +2.0 * (q.W * q.Z);
-            double cosy_cosp = +1.0 - 2.0 * (q.Z * q.Z);
-            return (float)Math.Atan2(siny_cosp, cosy_cosp) - 1.5f;
-        }
+            private float GetYaw(QuaternionR q)
+            {
+                double siny_cosp = +2.0 * (q.W * q.Z);
+                double cosy_cosp = +1.0 - 2.0 * (q.Z * q.Z);
+                float Yawrad = (float)Math.Atan2(siny_cosp, cosy_cosp) - (float)(Math.PI / 2);
+
+                if (Yawrad < -(Math.PI))
+                    Yawrad = (float)(Math.PI * 2) + Yawrad;
+                return Yawrad;
+            }
+    
 
         private void panel1_Paint(object sender, PaintEventArgs e)
         {
@@ -168,7 +173,7 @@ namespace imageLidarVisualizer
         private void button1_Click(object sender, EventArgs e)
         {
    
-            if (DIndex == 14)
+            if (DIndex == 10)
                 DIndex = 0;
 
             m_map = m_fuser.Fuse(imageLidarData[DIndex]);
